@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Calculator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>Simple Calculator</h2>
+  <form action="/calculate" method="post">
+    <input type="number" name="a" required>
+    <select name="op">
+      <option>+</option>
+      <option>-</option>
+      <option>*</option>
+      <option>/</option>
+    </select>
+    <input type="number" name="b" required>
+    <button type="submit">Calculate</button>
+  </form>
+</body>
+</html>
+

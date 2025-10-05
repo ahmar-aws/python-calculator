@@ -1,0 +1,40 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    DEPLOY_KEY: ec2-deploy-key   # the secret name in Secrets Manager
+  variables:
+    EC2_HOST: "YOUR_EC2_PUBLIC_IP"   # set this here or as project env var
+    EC2_USER: "ec2-user"
+
+phases:
+  install:
+    commands:
+      - echo "Install ssh client and git if needed"
+      - if command -v yum >/dev/null 2>&1; then sudo yum -y install openssh-clients git; else sudo apt-get update && sudo apt-get -y install openssh-client git; fi
+  build:
+    commands:
+      - echo "Writing deploy key..."
+      - printf '%s\n' "$DEPLOY_KEY" > deploy_key.pem
+      - chmod 600 deploy_key.pem
+      - echo "SSH to EC2 and deploy"
+      - |
+        ssh -o StrictHostKeyChecking=no -i deploy_key.pem $EC2_USER@$EC2_HOST <<'EOF'
+        set -e
+        cd /home/ec2-user
+        if [ -d "myapp" ]; then
+          cd myapp
+          git pull
+        else
+          git clone https://github.com/ahmar-aws/python-calculator.git myapp
+          cd myapp
+        fi
+        # install dependencies
+        pip3 install -r requirements.txt
+        # restart app
+        sudo pkill -f gunicorn || true
+        nohup gunicorn -w 2 -b 0.0.0.0:80 app:app > /home/ec2-user/myapp/app.log 2>&1 &
+        EOF
+
+artifacts:
+  files: []

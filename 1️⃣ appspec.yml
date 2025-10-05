@@ -1,0 +1,10 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/myapp
+hooks:
+  AfterInstall:
+    - location: scripts/restart_server.sh
+      timeout: 30
+      runas: ec2-user
